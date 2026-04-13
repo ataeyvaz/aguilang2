@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+# Büyük veri dosyaları
+docs/data-sources/tur.txt
+docs/data-sources/deu.txt
+docs/data-sources/spa.txt
+docs/data-sources/output_tur.json
+docs/data-sources/output_deu.json
+docs/data-sources/output_spa.json

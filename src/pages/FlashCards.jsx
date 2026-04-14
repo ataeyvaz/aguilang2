@@ -12,6 +12,19 @@ export default function FlashCards() {
   const lang = JSON.parse(localStorage.getItem('aguilang_active_lang') || '{ "id": "en" }')
 
   useEffect(() => {
+    if (!category.id) return
+
+    const saved = localStorage.getItem('aguilang_active_categories')
+    if (saved) {
+      try {
+        const allowed = JSON.parse(saved)
+        if (!allowed.includes(category.id)) {
+          navigate('/categories')
+          return
+        }
+      } catch { /* geçersiz JSON — devam et */ }
+    }
+
     const loadWords = async () => {
       try {
         const module = await import(`../data/${category.id}-a1.json`)
@@ -22,8 +35,8 @@ export default function FlashCards() {
         setWords([])
       }
     }
-    if (category.id) loadWords()
-  }, [category.id, lang.id])
+    loadWords()
+  }, [category.id, lang.id, navigate])
 
   const current = words[index]
   const progress = words.length ? Math.round(((index + 1) / words.length) * 100) : 0

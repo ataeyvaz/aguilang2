@@ -32,9 +32,12 @@ export default function CategorySelect() {
   const profile = JSON.parse(localStorage.getItem('aguilang_active_profile') || '{}')
   const lang = JSON.parse(localStorage.getItem('aguilang_active_lang') || '{}')
 
-  const filtered = CATEGORIES.filter(c =>
-    c.name.toLowerCase().includes(search.toLowerCase())
-  )
+  const savedCats = localStorage.getItem('aguilang_active_categories')
+  const activeCats = savedCats ? JSON.parse(savedCats) : null
+
+  const filtered = CATEGORIES
+    .filter(c => activeCats === null || activeCats.includes(c.id))
+    .filter(c => c.name.toLowerCase().includes(search.toLowerCase()))
 
   const handleSelect = (cat) => {
     localStorage.setItem('aguilang_active_category', JSON.stringify(cat))

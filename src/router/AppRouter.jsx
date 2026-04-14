@@ -6,15 +6,8 @@ import CategorySelect from '../pages/CategorySelect'
 import FlashCards from '../pages/FlashCards'
 import Dashboard from '../pages/Dashboard'
 import QuizScreen from '../pages/QuizScreen'
-
-const ParentPanel = () => (
-  <div style={{ padding: '40px', fontFamily: 'Inter, sans-serif', color: '#0F172A' }}>
-    <h1 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '24px', fontWeight: '800' }}>
-      🔒 Ebeveyn Paneli
-    </h1>
-    <p style={{ color: '#64748B', marginTop: '8px' }}>Yakında eklenecek...</p>
-  </div>
-)
+import ParentGate from '../pages/parent/ParentGate'
+import ParentPanel from '../pages/parent/ParentPanel'
 
 const PlayPage = () => (
   <div style={{ padding: '40px', fontFamily: 'Inter, sans-serif', color: '#0F172A' }}>
@@ -41,6 +34,8 @@ export default function AppRouter() {
         {/* Standalone — layout yok */}
         <Route path="/" element={<ProfileSelect />} />
         <Route path="/language" element={<LanguageSelect />} />
+        <Route path="/parent" element={<ParentGate />} />
+        <Route path="/parent/panel" element={<ParentPanel />} />
 
         {/* Layout içinde — sidebar + bottomnav var */}
         <Route element={<AppLayout />}>
@@ -50,7 +45,6 @@ export default function AppRouter() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/play" element={<PlayPage />} />
           <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/parent" element={<ParentPanel />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

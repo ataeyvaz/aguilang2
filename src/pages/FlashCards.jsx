@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { speak } from '../utils/audioManager'
 import { recordDaily } from '../hooks/useDailyStats'
 import { CATEGORIES } from '../data/categories'
+import { useSpeech } from '../hooks/useSpeech'
 
 export default function FlashCards() {
   const navigate = useNavigate()
@@ -10,9 +11,38 @@ export default function FlashCards() {
   const [index, setIndex] = useState(0)
   const [flipped, setFlipped] = useState(false)
   const [showGrammar, setShowGrammar] = useState(false)
+  const [toast, setToast] = useState(false)
+  const sttTimerRef = useRef(null)
 
   const category = JSON.parse(localStorage.getItem('aguilang_active_category') || '{}')
   const lang = JSON.parse(localStorage.getItem('aguilang_active_lang') || '{ "id": "en" }')
+
+  const {
+    startListening, stopListening, isListening,
+    transcript, sttSupported, checkAnswer,
+  } = useSpeech(lang.id)
+
+  // STT sonucu gelince kelimeyi kontrol et
+  useEffect(() => {
+    if (!transcript) return
+    clearTimeout(sttTimerRef.current)
+    stopListening()
+    if (checkAnswer(current?.[lang.id])) {
+      setToast(true)
+      setTimeout(() => setToast(false), 2000)
+    }
+  }, [transcript]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    return () => clearTimeout(sttTimerRef.current)
+  }, [])
+
+  const handleStt = (e) => {
+    e.stopPropagation()
+    if (isListening) return
+    startListening()
+    sttTimerRef.current = setTimeout(() => stopListening(), 3000)
+  }
 
   useEffect(() => {
     if (!category.id) return
@@ -47,6 +77,8 @@ export default function FlashCards() {
   const grammarNote = catMeta?.grammarNote
 
   const handleNext = () => {
+    clearTimeout(sttTimerRef.current)
+    stopListening()
     setFlipped(false)
     recordDaily(true)
     setTimeout(() => {
@@ -92,6 +124,22 @@ export default function FlashCards() {
       display: 'flex', flexDirection: 'column',
       fontFamily: 'Inter, sans-serif',
     }}>
+      {/* Toast */}
+      {toast && (
+        <div style={{
+          position: 'fixed', bottom: '100px', left: '50%',
+          transform: 'translateX(-50%)',
+          background: '#10B981', color: 'white',
+          borderRadius: '24px', padding: '12px 28px',
+          fontFamily: "'Plus Jakarta Sans', sans-serif",
+          fontSize: '15px', fontWeight: '700',
+          boxShadow: '0 4px 16px rgba(16,185,129,0.35)',
+          zIndex: 100, whiteSpace: 'nowrap',
+          pointerEvents: 'none',
+        }}>
+          Harika! 🌟
+        </div>
+      )}
       {/* Header */}
       <div style={{
         background: 'white', borderBottom: '1px solid #E2E8F0', padding: '14px 24px',
@@ -248,9 +296,28 @@ export default function FlashCards() {
                 <div style={{ fontSize: '16px', color: '#94A3B8' }}>
                   /{current?.pron}/
                 </div>
-                <div style={{ fontSize: '13px', color: '#CBD5E1', marginTop: '8px' }}>
+                <div style={{ fontSize: '13px', color: '#CBD5E1', marginTop: '4px' }}>
                   👆 Anlamı görmek için dokun
                 </div>
+                {sttSupported && (
+                  <button
+                    onClick={handleStt}
+                    style={{
+                      marginTop: '8px',
+                      padding: '8px 20px',
+                      background: isListening ? '#FEE2E2' : '#F1F5F9',
+                      border: `1.5px solid ${isListening ? '#FCA5A5' : '#E2E8F0'}`,
+                      borderRadius: '20px',
+                      fontSize: '13px', fontWeight: '600',
+                      color: isListening ? '#DC2626' : '#64748B',
+                      cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', gap: '6px',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {isListening ? '🔴 Dinleniyor...' : '🎤 Sen de söyle'}
+                  </button>
+                )}
               </>
             ) : (
               <>

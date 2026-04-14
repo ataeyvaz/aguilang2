@@ -1,13 +1,17 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 
 const tabs = [
-  { to: '/dashboard', label: 'Anasayfa', icon: '🏠' },
-  { to: '/learn',     label: 'Öğren',    icon: '📚' },
-  { to: '/play',      label: 'Oyna',     icon: '🎮' },
-  { to: '/profile',   label: 'Profil',   icon: '👤' },
+  { to: '/dashboard',  label: 'Anasayfa', icon: '🏠', match: ['/dashboard'] },
+  { to: '/categories', label: 'Öğren',    icon: '📚', match: ['/categories', '/learn', '/quiz'] },
+  { to: '/play',       label: 'Oyna',     icon: '🎮', match: ['/play'] },
+  { to: '/profile',    label: 'Profil',   icon: '👤', match: ['/profile'] },
 ]
 
 export default function BottomNav() {
+  const { pathname } = useLocation()
+
+  const isActive = (match) => match.some(p => pathname === p || pathname.startsWith(p + '/'))
+
   return (
     <nav
       className="md:hidden flex items-center justify-around"
@@ -18,21 +22,35 @@ export default function BottomNav() {
         flexShrink: 0,
       }}
     >
-      {tabs.map(({ to, label, icon }) => (
-        <NavLink
-          key={to}
-          to={to}
-          className={({ isActive }) =>
-            [
-              'flex flex-col items-center gap-0.5 px-3 py-1 text-xs font-medium transition-colors',
-              isActive ? 'text-primary' : 'text-gray-400',
-            ].join(' ')
-          }
-        >
-          <span className="text-xl">{icon}</span>
-          <span>{label}</span>
-        </NavLink>
-      ))}
+      {tabs.map(({ to, label, icon, match }) => {
+        const active = isActive(match)
+        return (
+          <NavLink
+            key={to}
+            to={to}
+            style={{
+              display: 'flex', flexDirection: 'column',
+              alignItems: 'center', gap: '2px',
+              padding: '4px 12px',
+              fontSize: '11px', fontWeight: active ? '700' : '500',
+              textDecoration: 'none',
+              color: active ? '#0891B2' : '#94A3B8',
+              position: 'relative',
+              transition: 'color 0.15s',
+            }}
+          >
+            {active && (
+              <span style={{
+                position: 'absolute', top: 0, left: '20%',
+                width: '60%', height: '2px',
+                background: '#0891B2', borderRadius: '0 0 2px 2px',
+              }} />
+            )}
+            <span style={{ fontSize: '20px' }}>{icon}</span>
+            <span>{label}</span>
+          </NavLink>
+        )
+      })}
     </nav>
   )
 }

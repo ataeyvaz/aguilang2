@@ -11,6 +11,7 @@ export default function FlashCards() {
   const [index, setIndex] = useState(0)
   const [flipped, setFlipped] = useState(false)
   const [showGrammar, setShowGrammar] = useState(false)
+  const [showWordList, setShowWordList] = useState(false)
   const [toast, setToast] = useState(false)
   const sttTimerRef = useRef(null)
 
@@ -75,6 +76,13 @@ export default function FlashCards() {
   const progress = showGrammar ? 100 : words.length ? Math.round(((index + 1) / words.length) * 100) : 0
   const catMeta = CATEGORIES.find(c => c.id === category.id)
   const grammarNote = catMeta?.grammarNote
+
+  const handlePrev = () => {
+    clearTimeout(sttTimerRef.current)
+    stopListening()
+    setFlipped(false)
+    setIndex(i => i - 1)
+  }
 
   const handleNext = () => {
     clearTimeout(sttTimerRef.current)
@@ -350,6 +358,86 @@ export default function FlashCards() {
         )}
       </div>
 
+      {/* Gezilen Kelimeler Linki */}
+      {!showGrammar && (
+        <div style={{ textAlign: 'center', marginBottom: '4px' }}>
+          <button
+            onClick={() => setShowWordList(true)}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              fontSize: '12px', color: '#94A3B8', fontFamily: 'Inter, sans-serif',
+              padding: '4px 8px',
+            }}
+          >
+            📋 Gezilen kelimeleri gör ({index + 1}/{words.length})
+          </button>
+        </div>
+      )}
+
+      {/* Gezilen Kelimeler Modal */}
+      {showWordList && (
+        <div
+          onClick={() => setShowWordList(false)}
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
+            zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '24px',
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              background: 'white', borderRadius: '20px',
+              width: '100%', maxWidth: '400px',
+              maxHeight: '70vh', display: 'flex', flexDirection: 'column',
+              boxShadow: '0 8px 40px rgba(0,0,0,0.18)',
+            }}
+          >
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '18px 20px', borderBottom: '1px solid #E2E8F0', flexShrink: 0,
+            }}>
+              <div style={{
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                fontSize: '15px', fontWeight: '800', color: '#0F172A',
+              }}>
+                Bu Oturumda Gezilen Kelimeler
+              </div>
+              <button
+                onClick={() => setShowWordList(false)}
+                style={{
+                  background: '#F1F5F9', border: 'none', borderRadius: '8px',
+                  width: '32px', height: '32px', cursor: 'pointer', fontSize: '16px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: '#64748B', fontWeight: '700',
+                }}
+              >✕</button>
+            </div>
+            <div style={{ overflowY: 'auto', padding: '10px 14px', flex: 1 }}>
+              {words.slice(0, index + 1).map((w, i) => (
+                <div
+                  key={i}
+                  style={{
+                    padding: '10px 14px', borderRadius: '10px', marginBottom: '3px',
+                    borderLeft: `3px solid ${i === index ? '#0891B2' : 'transparent'}`,
+                    background: i === index ? '#EFF8FF' : 'transparent',
+                    display: 'flex', gap: '8px', alignItems: 'center',
+                    fontSize: '14px',
+                  }}
+                >
+                  <span style={{
+                    fontFamily: "'Plus Jakarta Sans', sans-serif",
+                    fontWeight: '700', color: '#0F172A',
+                  }}>{w[lang.id] || w.word}</span>
+                  <span style={{ color: '#CBD5E1' }}>—</span>
+                  <span style={{ color: '#64748B' }}>{w.tr}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Butonlar */}
       <div style={{
         padding: '16px 24px 32px', display: 'flex', gap: '12px',
@@ -370,15 +458,19 @@ export default function FlashCards() {
         ) : (
           <>
             <button
-              onClick={() => handleNext()}
+              onClick={handlePrev}
+              disabled={index === 0}
               style={{
                 flex: 1, height: '52px', background: 'white',
                 border: '1.5px solid #E2E8F0', borderRadius: '12px',
-                fontSize: '15px', fontWeight: '600', color: '#64748B',
-                cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                fontSize: '15px', fontWeight: '600',
+                color: index === 0 ? '#CBD5E1' : '#64748B',
+                cursor: index === 0 ? 'default' : 'pointer',
+                fontFamily: 'Inter, sans-serif',
+                opacity: index === 0 ? 0.5 : 1,
               }}
             >
-              🔄 Tekrar
+              ← Önceki
             </button>
             <button
               onClick={() => handleNext()}
@@ -388,7 +480,7 @@ export default function FlashCards() {
                 color: 'white', cursor: 'pointer', fontFamily: 'Inter, sans-serif',
               }}
             >
-              ✓ Bildim
+              Anladım ✓
             </button>
           </>
         )}

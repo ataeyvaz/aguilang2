@@ -46,12 +46,13 @@ export default function ProfilePage() {
   )
 
   const resetAll = () => {
-    if (!window.confirm('Tüm uygulama verileri silinecek ve başa döneceksin. Emin misin?')) return
+    if (!window.confirm('Tüm kelime istatistikleri ve günlük veriler silinecek. Profilin korunacak. Emin misin?')) return
     if (!window.confirm('Son kez onaylıyor musun? Bu işlem geri alınamaz.')) return
-    const keys = Object.keys(localStorage).filter(k => k.startsWith('aguilang_'))
-    keys.forEach(k => localStorage.removeItem(k))
+    const RESET_KEYS = ['aguilang_word_stats', 'aguilang_daily_stats', 'aguilang_last_reset']
+    RESET_KEYS.forEach(k => localStorage.removeItem(k))
     window.dispatchEvent(new Event('wordStatsUpdated'))
-    navigate('/')
+    setResetMsg('Sıfırlandı ✓')
+    setTimeout(() => setResetMsg(''), 2500)
   }
 
   // ── Stil sabitleri ────────────────────────────────────────────
@@ -310,7 +311,7 @@ export default function ProfilePage() {
                       color: '#DC2626', textAlign: 'left',
                     }}
                   >
-                    🗑️ Her şeyi sıfırla
+                    🗑️ Tüm Öğrenme Verilerini Sıfırla
                   </button>
                 </div>
               </div>

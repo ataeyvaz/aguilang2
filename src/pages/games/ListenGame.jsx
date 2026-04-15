@@ -4,6 +4,12 @@ import { speak } from '../../utils/audioManager'
 
 const QUESTION_COUNT = 10
 
+const ALL_CATEGORIES = [
+  'animals','colors','numbers','fruits','vegetables','body','family','school',
+  'food','greetings','questions','clothing','home','transport','time',
+  'jobs','sports','places','adjectives','verbs',
+]
+
 const shuffle = arr => [...arr].sort(() => Math.random() - 0.5)
 
 const updateWordStats = (wordId, isCorrect) => {
@@ -19,9 +25,8 @@ const updateWordStats = (wordId, isCorrect) => {
 }
 
 const genQuestions = (pool, count) => {
-  const shuffled = shuffle(pool)
-  return Array.from({ length: count }, (_, i) => {
-    const answer      = shuffled[i % shuffled.length]
+  const answers = shuffle(pool).slice(0, count)
+  return answers.map(answer => {
     const distractors = shuffle(pool.filter(w => w.id !== answer.id)).slice(0, 3)
     return { answer, options: shuffle([answer, ...distractors]) }
   })
@@ -29,8 +34,7 @@ const genQuestions = (pool, count) => {
 
 export default function ListenGame() {
   const navigate = useNavigate()
-  const lang     = JSON.parse(localStorage.getItem('aguilang_active_lang')     || '{"id":"en"}')
-  const category = JSON.parse(localStorage.getItem('aguilang_active_category') || '{}')
+  const lang     = JSON.parse(localStorage.getItem('aguilang_active_lang') || '{"id":"en"}')
 
   const [words,        setWords]        = useState([])
   const [questions,    setQuestions]    = useState([])
@@ -41,16 +45,21 @@ export default function ListenGame() {
   const [gameOver,     setGameOver]     = useState(false)
   const [loading,      setLoading]      = useState(true)
 
-  /* ── Word loading ── */
+  /* ── Load ALL categories ── */
   useEffect(() => {
-    if (!category.id) { setLoading(false); return }
     const load = async () => {
       try {
-        const mod  = await import(`../../data/${category.id}-a1.json`)
-        const all  = mod.default.translations?.[lang.id]?.words || []
-        const stats = JSON.parse(localStorage.getItem('aguilang_word_stats') || '{}')
-        const seen  = all.filter(w => stats[w.id]?.seen >= 1)
-        const pool  = seen.length >= 4 ? seen : all
+        const stats   = JSON.parse(localStorage.getItem('aguilang_word_stats') || '{}')
+        const results = await Promise.allSettled(
+          ALL_CATEGORIES.map(cat => import(`../../data/${cat}-a1.json`))
+        )
+        const all = results.flatMap(r =>
+          r.status === 'fulfilled'
+            ? (r.value.default.translations?.[lang.id]?.words || [])
+            : []
+        )
+        const seen = all.filter(w => stats[w.id]?.seen >= 1)
+        const pool = seen.length >= 4 ? seen : all
         setWords(pool)
         if (pool.length >= 4) setQuestions(genQuestions(pool, QUESTION_COUNT))
       } catch { /* ignore */ }
@@ -108,7 +117,7 @@ export default function ListenGame() {
     <div style={{ minHeight: '100vh', background: '#F8FAFC', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', fontFamily: 'Inter, sans-serif', textAlign: 'center', padding: '24px' }}>
       <div style={{ fontSize: '48px' }}>📭</div>
       <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '18px', fontWeight: '700', color: '#0F172A' }}>Yeterli kelime yok</div>
-      <div style={{ fontSize: '14px', color: '#64748B' }}>Bu oyun için en az 4 kelimeli bir kategori seç.</div>
+      <div style={{ fontSize: '14px', color: '#64748B' }}>Önce flash kartlarla kelime çalış.</div>
       <button onClick={() => navigate('/categories')} style={{ padding: '11px 28px', background: '#0891B2', color: 'white', border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>Kategori Seç</button>
     </div>
   )
@@ -167,8 +176,8 @@ export default function ListenGame() {
             const isAnswer = opt.id === q.answer.id
             const isChosen = selected === i
             let bg = 'white', border = '#E2E8F0'
-            if (isChosen && isAnswer)           { bg = '#F0FDF4'; border = '#86EFAC' }
-            else if (isChosen && !isAnswer)      { bg = '#FEF2F2'; border = '#FCA5A5' }
+            if (isChosen && isAnswer)            { bg = '#F0FDF4'; border = '#86EFAC' }
+            else if (isChosen && !isAnswer)       { bg = '#FEF2F2'; border = '#FCA5A5' }
             else if (selected !== null && isAnswer) { bg = '#F0FDF4'; border = '#86EFAC' }
             return (
               <button

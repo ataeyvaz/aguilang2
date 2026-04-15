@@ -2,6 +2,12 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { speak } from '../../utils/audioManager'
 
+const ALL_CATEGORIES = [
+  'animals','colors','numbers','fruits','vegetables','body','family','school',
+  'food','greetings','questions','clothing','home','transport','time',
+  'jobs','sports','places','adjectives','verbs',
+]
+
 const shuffle = arr => [...arr].sort(() => Math.random() - 0.5)
 
 const updateWordStats = (wordId, isCorrect) => {
@@ -23,8 +29,7 @@ const buildDeck = (chosen) => shuffle([
 
 export default function MemoryGame() {
   const navigate = useNavigate()
-  const lang     = JSON.parse(localStorage.getItem('aguilang_active_lang')     || '{"id":"en"}')
-  const category = JSON.parse(localStorage.getItem('aguilang_active_category') || '{}')
+  const lang     = JSON.parse(localStorage.getItem('aguilang_active_lang') || '{"id":"en"}')
 
   const [cards,    setCards]    = useState([])
   const [flipped,  setFlipped]  = useState([])   // max 2 card indices
@@ -34,23 +39,28 @@ export default function MemoryGame() {
   const [gameOver, setGameOver] = useState(false)
   const [loading,  setLoading]  = useState(true)
   const [elapsed,  setElapsed]  = useState(0)
-  const startRef = useRef(Date.now())
-  const timerRef = useRef(null)
-  const chosenRef = useRef([])   // keeps the 4 chosen words for restart
+  const startRef  = useRef(Date.now())
+  const timerRef  = useRef(null)
+  const poolRef   = useRef([])   // full merged pool for restart re-pick
 
-  /* ── Word loading ── */
+  /* ── Load ALL categories ── */
   useEffect(() => {
-    if (!category.id) { setLoading(false); return }
     const load = async () => {
       try {
-        const mod   = await import(`../../data/${category.id}-a1.json`)
-        const all   = mod.default.translations?.[lang.id]?.words || []
-        const stats = JSON.parse(localStorage.getItem('aguilang_word_stats') || '{}')
-        const seen  = all.filter(w => stats[w.id]?.seen >= 1)
-        const pool  = seen.length >= 4 ? seen : all
+        const stats   = JSON.parse(localStorage.getItem('aguilang_word_stats') || '{}')
+        const results = await Promise.allSettled(
+          ALL_CATEGORIES.map(cat => import(`../../data/${cat}-a1.json`))
+        )
+        const all = results.flatMap(r =>
+          r.status === 'fulfilled'
+            ? (r.value.default.translations?.[lang.id]?.words || [])
+            : []
+        )
+        const seen = all.filter(w => stats[w.id]?.seen >= 1)
+        const pool = seen.length >= 4 ? seen : all
+        poolRef.current = pool
         if (pool.length >= 2) {
           const chosen = shuffle(pool).slice(0, 4)
-          chosenRef.current = chosen
           setCards(buildDeck(chosen))
         }
       } catch { /* ignore */ }
@@ -110,7 +120,8 @@ export default function MemoryGame() {
   const handleRestart = () => {
     clearInterval(timerRef.current)
     startRef.current = Date.now()
-    setCards(buildDeck(chosenRef.current))
+    const chosen = shuffle(poolRef.current).slice(0, 4)
+    setCards(buildDeck(chosen))
     setFlipped([]); setMatched([]); setMoves(0)
     setGameOver(false); setChecking(false); setElapsed(0)
   }
@@ -127,6 +138,7 @@ export default function MemoryGame() {
     <div style={{ minHeight: '100vh', background: '#F8FAFC', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', fontFamily: 'Inter, sans-serif', textAlign: 'center', padding: '24px' }}>
       <div style={{ fontSize: '48px' }}>📭</div>
       <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '18px', fontWeight: '700', color: '#0F172A' }}>Yeterli kelime yok</div>
+      <div style={{ fontSize: '14px', color: '#64748B' }}>Önce flash kartlarla kelime çalış.</div>
       <button onClick={() => navigate('/categories')} style={{ padding: '11px 28px', background: '#0891B2', color: 'white', border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>Kategori Seç</button>
     </div>
   )
@@ -161,9 +173,9 @@ export default function MemoryGame() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px', gap: '16px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', width: '100%', maxWidth: '360px' }}>
           {cards.map((card, idx) => {
-            const isFaceUp    = flipped.includes(idx) || matched.includes(idx)
+            const isFaceUp      = flipped.includes(idx) || matched.includes(idx)
             const isMatchedCard = matched.includes(idx)
-            const isClickable = !checking && !matched.includes(idx) && !flipped.includes(idx) && flipped.length < 2
+            const isClickable   = !checking && !matched.includes(idx) && !flipped.includes(idx) && flipped.length < 2
             return (
               <div
                 key={card.uid}

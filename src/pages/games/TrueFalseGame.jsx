@@ -3,6 +3,12 @@ import { useNavigate } from 'react-router-dom'
 
 const QUESTION_COUNT = 10
 
+const ALL_CATEGORIES = [
+  'animals','colors','numbers','fruits','vegetables','body','family','school',
+  'food','greetings','questions','clothing','home','transport','time',
+  'jobs','sports','places','adjectives','verbs',
+]
+
 const shuffle = arr => [...arr].sort(() => Math.random() - 0.5)
 
 const updateWordStats = (wordId, isCorrect) => {
@@ -18,15 +24,12 @@ const updateWordStats = (wordId, isCorrect) => {
 }
 
 const genQuestions = (pool, count) => {
-  const shuffled = shuffle(pool)
-  return Array.from({ length: count }, (_, i) => {
-    const word   = shuffled[i % shuffled.length]
+  const targets = shuffle(pool).slice(0, count)
+  return targets.map(word => {
     const isTrue = Math.random() > 0.5
-    // Farklı emojiye sahip bir distractor bul
     const others     = shuffle(pool.filter(w => w.id !== word.id && w.emoji !== word.emoji))
     const distractor = isTrue ? null : (others[0] || pool.find(w => w.id !== word.id) || null)
-    const displayEmoji = isTrue ? word.emoji : (distractor?.emoji || word.emoji)
-    // Distractor yoksa soruyu true yap
+    const displayEmoji  = isTrue ? word.emoji : (distractor?.emoji || word.emoji)
     const effectiveTrue = isTrue || !distractor
     return { word, isTrue: effectiveTrue, displayEmoji, distractor }
   })
@@ -34,28 +37,32 @@ const genQuestions = (pool, count) => {
 
 export default function TrueFalseGame() {
   const navigate = useNavigate()
-  const lang     = JSON.parse(localStorage.getItem('aguilang_active_lang')     || '{"id":"en"}')
-  const category = JSON.parse(localStorage.getItem('aguilang_active_category') || '{}')
+  const lang     = JSON.parse(localStorage.getItem('aguilang_active_lang') || '{"id":"en"}')
 
-  const [words,    setWords]    = useState([])
+  const [words,     setWords]     = useState([])
   const [questions, setQuestions] = useState([])
-  const [qIndex,   setQIndex]   = useState(0)
-  const [answer,   setAnswer]   = useState(null)   // 'true' | 'false' | null
-  const [score,    setScore]    = useState(0)
-  const [correct,  setCorrect]  = useState(0)
-  const [gameOver, setGameOver] = useState(false)
-  const [loading,  setLoading]  = useState(true)
+  const [qIndex,    setQIndex]    = useState(0)
+  const [answer,    setAnswer]    = useState(null)   // 'true' | 'false' | null
+  const [score,     setScore]     = useState(0)
+  const [correct,   setCorrect]   = useState(0)
+  const [gameOver,  setGameOver]  = useState(false)
+  const [loading,   setLoading]   = useState(true)
 
-  /* ── Word loading ── */
+  /* ── Load ALL categories ── */
   useEffect(() => {
-    if (!category.id) { setLoading(false); return }
     const load = async () => {
       try {
-        const mod   = await import(`../../data/${category.id}-a1.json`)
-        const all   = mod.default.translations?.[lang.id]?.words || []
-        const stats = JSON.parse(localStorage.getItem('aguilang_word_stats') || '{}')
-        const seen  = all.filter(w => stats[w.id]?.seen >= 1)
-        const pool  = seen.length >= 2 ? seen : all
+        const stats   = JSON.parse(localStorage.getItem('aguilang_word_stats') || '{}')
+        const results = await Promise.allSettled(
+          ALL_CATEGORIES.map(cat => import(`../../data/${cat}-a1.json`))
+        )
+        const all = results.flatMap(r =>
+          r.status === 'fulfilled'
+            ? (r.value.default.translations?.[lang.id]?.words || [])
+            : []
+        )
+        const seen = all.filter(w => stats[w.id]?.seen >= 1)
+        const pool = seen.length >= 2 ? seen : all
         setWords(pool)
         if (pool.length >= 2) setQuestions(genQuestions(pool, QUESTION_COUNT))
       } catch { /* ignore */ }

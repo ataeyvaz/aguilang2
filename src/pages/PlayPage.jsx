@@ -5,9 +5,9 @@ const GAMES = [
   { id: 'listen',    emoji: '🎧', name: 'Dinle & Seç',     desc: 'Duyduğun kelimeyi bul',           route: '/games/listen',    mode: 'reinforcement', ready: true  },
   { id: 'memory',    emoji: '🧠', name: 'Hafıza Eşleştir', desc: 'Kelime-emoji çiftlerini eşleştir', route: '/games/memory',    mode: 'reinforcement', ready: true  },
   { id: 'truefalse', emoji: '✅', name: 'Doğru / Yanlış',  desc: 'Cümle + emoji eşleşiyor mu?',      route: '/games/truefalse', mode: 'reinforcement', ready: true  },
-  { id: 'speed',     emoji: '⚡', name: 'Hız Turu',         desc: 'Süre bitmeden cevapla',            route: '/games/speed',     mode: 'growth',        ready: false },
-  { id: 'sentence',  emoji: '📝', name: 'Cümle Kur',       desc: 'Kelimeleri doğru sıraya diz',      route: '/games/sentence',  mode: 'growth',        ready: false },
-  { id: 'voice',     emoji: '🎤', name: 'Hazineyi Aç',     desc: 'Söyle, hazineyi kazan',            route: '/games/voice',     mode: 'growth',        ready: false },
+  { id: 'speed',     emoji: '⚡', name: 'Hız Turu',         desc: 'Süre bitmeden cevapla',            route: '/games/speed',     mode: 'growth',        ready: true  },
+  { id: 'sentence',  emoji: '📝', name: 'Cümle Kur',       desc: 'Kelimeleri doğru sıraya diz',      route: '/games/sentence',  mode: 'growth',        ready: true  },
+  { id: 'voice',     emoji: '🎤', name: 'Hazineyi Aç',     desc: 'Söyle, hazineyi kazan',            route: '/games/voice',     mode: 'growth',        ready: true  },
   { id: 'puzzle',    emoji: '🧩', name: 'Senaryo Puzzle',  desc: 'Diyalog boşluklarını doldur',      route: '/games/puzzle',    mode: 'growth',        ready: false },
 ]
 

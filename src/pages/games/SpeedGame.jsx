@@ -3,6 +3,12 @@ import { useNavigate } from 'react-router-dom'
 
 const MAX_TIME = 60
 
+const ALL_CATEGORIES = [
+  'animals','colors','numbers','fruits','vegetables','body','family','school',
+  'food','greetings','questions','clothing','home','transport','time',
+  'jobs','sports','places','adjectives','verbs',
+]
+
 const shuffle = arr => [...arr].sort(() => Math.random() - 0.5)
 
 const updateWordStats = (wordId, isCorrect) => {
@@ -17,15 +23,14 @@ const updateWordStats = (wordId, isCorrect) => {
   window.dispatchEvent(new Event('wordStatsUpdated'))
 }
 
-const genQuestions = (pool, stats, count = 60) => {
-  // wrong > 1 olanlar önce, sonra karışık
+// One question per word, sorted by wrong count desc so hard words come first
+const genQuestions = (pool, stats) => {
   const sorted = [...pool].sort((a, b) => {
     const wa = stats[a.id]?.wrong || 0
     const wb = stats[b.id]?.wrong || 0
     return wb !== wa ? wb - wa : Math.random() - 0.5
   })
-  return Array.from({ length: count }, (_, i) => {
-    const word        = sorted[i % sorted.length]
+  return sorted.map(word => {
     const distractors = shuffle(pool.filter(w => w.id !== word.id)).slice(0, 3)
     return { word, options: shuffle([word, ...distractors]) }
   })
@@ -33,31 +38,40 @@ const genQuestions = (pool, stats, count = 60) => {
 
 export default function SpeedGame() {
   const navigate = useNavigate()
-  const lang     = JSON.parse(localStorage.getItem('aguilang_active_lang')     || '{"id":"en"}')
-  const category = JSON.parse(localStorage.getItem('aguilang_active_category') || '{}')
+  const lang     = JSON.parse(localStorage.getItem('aguilang_active_lang') || '{"id":"en"}')
 
   const [questions,  setQuestions]  = useState([])
+  const [pool,       setPool]       = useState([])
   const [qIndex,     setQIndex]     = useState(0)
-  const [selected,   setSelected]   = useState(null)   // option index chosen
+  const [selected,   setSelected]   = useState(null)
   const [timeLeft,   setTimeLeft]   = useState(MAX_TIME)
   const [score,      setScore]      = useState(0)
   const [streak,     setStreak]     = useState(0)
   const [maxStreak,  setMaxStreak]  = useState(0)
   const [gameOver,   setGameOver]   = useState(false)
+  const [allDone,    setAllDone]    = useState(false)  // completed full deck
   const [loading,    setLoading]    = useState(true)
   const timerRef = useRef(null)
 
-  /* ── Word loading ── */
+  /* ── Load ALL categories ── */
   useEffect(() => {
-    if (!category.id) { setLoading(false); return }
     const load = async () => {
       try {
-        const mod   = await import(`../../data/${category.id}-a1.json`)
-        const all   = mod.default.translations?.[lang.id]?.words || []
-        const stats = JSON.parse(localStorage.getItem('aguilang_word_stats') || '{}')
-        const seen  = all.filter(w => stats[w.id]?.seen >= 1)
-        const pool  = seen.length >= 4 ? seen : all
-        if (pool.length >= 4) setQuestions(genQuestions(pool, stats))
+        const stats   = JSON.parse(localStorage.getItem('aguilang_word_stats') || '{}')
+        const results = await Promise.allSettled(
+          ALL_CATEGORIES.map(cat => import(`../../data/${cat}-a1.json`))
+        )
+        const all = results.flatMap(r =>
+          r.status === 'fulfilled'
+            ? (r.value.default.translations?.[lang.id]?.words || [])
+            : []
+        )
+        const seen = all.filter(w => stats[w.id]?.seen >= 1)
+        const p    = seen.length >= 4 ? seen : all
+        if (p.length >= 4) {
+          setPool(p)
+          setQuestions(genQuestions(p, stats))
+        }
       } catch { /* ignore */ }
       setLoading(false)
     }
@@ -96,19 +110,27 @@ export default function SpeedGame() {
       updateWordStats(q.word.id, false)
     }
 
+    const nextIdx = qIndex + 1
     setTimeout(() => {
       setSelected(null)
-      setQIndex(idx => idx + 1)
+      if (nextIdx >= questions.length) {
+        // Tüm kelimeler tamamlandı
+        clearInterval(timerRef.current)
+        setAllDone(true)
+        setGameOver(true)
+      } else {
+        setQIndex(nextIdx)
+      }
     }, isCorrect ? 380 : 580)
   }
 
   const handleRestart = () => {
-    if (!questions.length) return
+    if (!pool.length) return
     const stats = JSON.parse(localStorage.getItem('aguilang_word_stats') || '{}')
-    const pool  = [...new Set(questions.map(q => q.word))]
     setQuestions(genQuestions(pool, stats))
     setQIndex(0); setSelected(null); setTimeLeft(MAX_TIME)
-    setScore(0); setStreak(0); setMaxStreak(0); setGameOver(false)
+    setScore(0); setStreak(0); setMaxStreak(0)
+    setGameOver(false); setAllDone(false)
   }
 
   if (loading) return (
@@ -121,6 +143,7 @@ export default function SpeedGame() {
     <div style={{ minHeight: '100vh', background: '#F8FAFC', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', fontFamily: 'Inter, sans-serif', textAlign: 'center', padding: '24px' }}>
       <div style={{ fontSize: '48px' }}>📭</div>
       <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '18px', fontWeight: '700', color: '#0F172A' }}>Yeterli kelime yok</div>
+      <div style={{ fontSize: '14px', color: '#64748B' }}>Önce flash kartlarla kelime çalış.</div>
       <button onClick={() => navigate('/categories')} style={{ padding: '11px 28px', background: '#0891B2', color: 'white', border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>Kategori Seç</button>
     </div>
   )
@@ -128,15 +151,26 @@ export default function SpeedGame() {
   /* ── Özet ekranı ── */
   if (gameOver) return (
     <div style={{ minHeight: '100vh', background: '#F8FAFC', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '20px', fontFamily: 'Inter, sans-serif', textAlign: 'center', padding: '24px' }}>
-      <div style={{ fontSize: '64px' }}>⚡</div>
-      <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '32px', fontWeight: '800', color: '#0F172A' }}>{score} Doğru!</div>
+      <div style={{ fontSize: '64px' }}>{allDone ? '🏆' : '⚡'}</div>
+      <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '28px', fontWeight: '800', color: '#0F172A' }}>
+        {allDone ? 'Tebrikler!' : `${score} Doğru!`}
+      </div>
+      {allDone && (
+        <div style={{ fontSize: '15px', color: '#0891B2', fontWeight: '600' }}>
+          Tüm kelimeleri tamamladın! 🎉
+        </div>
+      )}
       <div style={{ display: 'flex', gap: '28px' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '24px', fontWeight: '800', color: '#0891B2', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{score}</div>
+          <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>Doğru</div>
+        </div>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '24px', fontWeight: '800', color: '#F59E0B', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{maxStreak}</div>
           <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>En uzun seri</div>
         </div>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '24px', fontWeight: '800', color: '#0891B2', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{qIndex}</div>
+          <div style={{ fontSize: '24px', fontWeight: '800', color: '#64748B', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{qIndex}</div>
           <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>Toplam soru</div>
         </div>
       </div>
@@ -147,7 +181,7 @@ export default function SpeedGame() {
     </div>
   )
 
-  const q          = questions[qIndex % questions.length]
+  const q          = questions[qIndex]
   const timePct    = (timeLeft / MAX_TIME) * 100
   const timerColor = timeLeft < 15 ? '#EF4444' : '#0891B2'
   const timerBg    = timeLeft < 15 ? '#FEF2F2' : '#EFF8FF'
@@ -168,7 +202,7 @@ export default function SpeedGame() {
         {/* Timer bar */}
         <div style={{ maxWidth: '480px', margin: '10px auto 0' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '6px' }}>
-            <span style={{ color: '#94A3B8' }}>Süre</span>
+            <span style={{ color: '#94A3B8' }}>Süre · {qIndex + 1}/{questions.length}</span>
             <span style={{ fontWeight: '700', color: timerColor }}>{timeLeft}s</span>
           </div>
           <div style={{ height: '8px', background: '#E2E8F0', borderRadius: '4px', overflow: 'hidden' }}>
@@ -209,9 +243,9 @@ export default function SpeedGame() {
             const isAnswer = opt.id === q.word.id
             const isChosen = selected === i
             let bg = 'white', border = '#E2E8F0', color = '#0F172A'
-            if (isChosen && isAnswer)            { bg = '#F0FDF4'; border = '#86EFAC'; color = '#15803D' }
-            else if (isChosen && !isAnswer)       { bg = '#FEF2F2'; border = '#FCA5A5'; color = '#DC2626' }
-            else if (selected !== null && isAnswer){ bg = '#F0FDF4'; border = '#86EFAC'; color = '#15803D' }
+            if (isChosen && isAnswer)             { bg = '#F0FDF4'; border = '#86EFAC'; color = '#15803D' }
+            else if (isChosen && !isAnswer)        { bg = '#FEF2F2'; border = '#FCA5A5'; color = '#DC2626' }
+            else if (selected !== null && isAnswer) { bg = '#F0FDF4'; border = '#86EFAC'; color = '#15803D' }
             return (
               <button
                 key={opt.id + i}

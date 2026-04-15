@@ -3,7 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom'
 const tabs = [
   { to: '/dashboard',  label: 'Anasayfa', icon: '🏠', match: ['/dashboard'] },
   { to: '/categories', label: 'Öğren',    icon: '📚', match: ['/categories', '/learn', '/quiz', '/dialogue'] },
-  { to: '/play',       label: 'Oyna',     icon: '🎮', match: ['/play'] },
+  { to: '/play',       label: 'Oyna',     icon: '🎮', match: ['/play', '/games'] },
   { to: '/profile',    label: 'Profil',   icon: '👤', match: ['/profile'] },
 ]
 

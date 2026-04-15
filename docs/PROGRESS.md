@@ -1,12 +1,12 @@
 # AguiLang2 — Proje İlerleme Durumu
 
-_Son güncelleme: 2026-04-14_
+_Son güncelleme: 2026-04-15_
 
 ---
 
 ## Genel Durum
 
-Proje aktif geliştirme aşamasında. Temel iskelet, tüm öğrenme akışı ve ebeveyn kontrol sistemi tamamlandı. Build temiz çıkıyor, bilinen hata yok.
+Proje aktif geliştirme aşamasında. Temel iskelet, tüm öğrenme akışı, ebeveyn kontrol sistemi ve sesli özellikler tamamlandı. Build temiz çıkıyor, bilinen hata yok.
 
 **Stack:** React 19 · Vite 8 · React Router v7 · TailwindCSS 3 · localStorage (backend yok)
 
@@ -19,35 +19,36 @@ Proje aktif geliştirme aşamasında. Temel iskelet, tüm öğrenme akışı ve 
 |---|---|---|---|
 | Profil Seçimi | `/` | ✅ Tamamlandı | Çocuk / yetişkin profil tipi |
 | Dil Seçimi | `/language` | ✅ Tamamlandı | Ebeveyn kısıtlaması aktif |
-| Kategori Seçimi | `/categories` | ✅ Tamamlandı | Ebeveyn izin filtresi aktif |
-| Flash Kartlar | `/learn` | ✅ Tamamlandı | Günlük stat kaydı, kategori guard |
-| Quiz Ekranı | `/quiz` | ✅ Tamamlandı | Yanlış-retry, çapraz kategori karışımı, manuel geçiş |
+| Kategori Seçimi | `/categories` | ✅ Tamamlandı | Ebeveyn izin filtresi, Diyaloglar kartı |
+| Flash Kartlar | `/learn` | ✅ Tamamlandı | Günlük stat, gramer notu, STT, ← Önceki, 📋 gezilen kelimeler |
+| Quiz Ekranı | `/quiz` | ✅ Tamamlandı | Yanlış-retry, çapraz kategori, sesli telaffuz sorusu (her 5'te 1) |
+| Diyaloglar | `/dialogue` | ✅ Tamamlandı | 6 senaryo, TTS otomatik, Türkçe hint her iki rol için |
 | Dashboard | `/dashboard` | ✅ Tamamlandı | Gerçek veriler, 7 günlük chart, zorlanılan kelimeler |
-| Öğrendiklerim | `/learned` | ✅ Tamamlandı | Tüm 20 kategori yükleme, seviye grupları, arama |
+| Öğrendiklerim | `/learned` | ✅ Tamamlandı | Tüm 20 kategori, seviye grupları, arama |
 | İstatistikler | `/stats` | ✅ Tamamlandı | Bar chart, kategori ilerleme, en uzun seri |
+| Profil | `/profile` | ✅ Tamamlandı | Rozet sistemi, TTS ayarları, sıfırlama (profil korunuyor) |
 | Oyna | `/play` | 🔲 Placeholder | "Yakında eklenecek" |
-| Profil | `/profile` | 🔲 Placeholder | "Yakında eklenecek" |
 
 ### Ebeveyn Sistemi
 | Sayfa | Route | Durum | Notlar |
 |---|---|---|---|
 | Ebeveyn Kapısı | `/parent` | ✅ Tamamlandı | PIN ekranı, shake animasyonu, default "1234" |
-| Ebeveyn Paneli | `/parent/panel` | ✅ Tamamlandı | 5 sekme (aşağıya bak) |
+| Ebeveyn Paneli | `/parent/panel` | ✅ Tamamlandı | 6 sekme (aşağıya bak) |
 
 **ParentPanel sekmeleri:**
 - **İstatistik (1)** — Çocuğun genel quiz ve kelime istatistikleri
 - **Kontrol (2)** — Kategori açma/kapama, dil kısıtlaması
 - **Plan (3)** — Günlük hedef, oturum süresi planlaması
-- **Oturum (4)** — Aktif oturum bilgisi
-- **Sıfırla (5)** — Quiz stats, günlük stats, kategori bazlı veya tam sıfırlama
+- **Oturum (4)** — Sesli quiz toggle (`aguilang_speech_quiz`)
+- **Sıfırla (5)** — word_stats, daily_stats, kategori bazlı veya tam sıfırlama (profil korunuyor)
 
 ### Layout / Navigasyon
 | Bileşen | Durum | Notlar |
 |---|---|---|
 | AppLayout | ✅ Tamamlandı | Sidebar (web) + BottomNav (mobil) |
-| Sidebar | ✅ Tamamlandı | 6 nav linki, profil özeti, ebeveyn paneli linki, aktif vurgu |
-| BottomNav | ✅ Tamamlandı | 4 tab, aktif çizgi göstergesi |
-| AppRouter | ✅ Tamamlandı | Standalone + AppLayout rotaları ayrımı |
+| Sidebar | ✅ Tamamlandı | 6 nav linki, aktif vurgu `/dialogue` dahil |
+| BottomNav | ✅ Tamamlandı | 4 tab, aktif vurgu `/dialogue` dahil |
+| AppRouter | ✅ Tamamlandı | Standalone + AppLayout rotaları, `/dialogue` + `/profile` |
 
 ---
 
@@ -57,12 +58,12 @@ Proje aktif geliştirme aşamasında. Temel iskelet, tüm öğrenme akışı ve 
 |---|---|---|
 | `useSession` | `hooks/useSession.js` | Quiz oturumu, `aguilang_word_stats` yazımı |
 | `useDailyStats` | `hooks/useDailyStats.js` | `recordDaily`, `getTodayStats`, `getDailyStats(n)` |
-| `useParentControls` | `hooks/useParentControls.js` | Ebeveyn ayarları okuma |
+| `useParentControls` | `hooks/useParentControls.js` | Ebeveyn ayarları + `readSpeechQuiz()` export |
 | `useDailyPlan` | `hooks/useDailyPlan.js` | Günlük plan |
 | `useProfile` | `hooks/useProfile.js` | Profil yönetimi |
-| `useProgress` | `hooks/useProgress.js` | İlerleme takibi |
-| `useSettings` | `hooks/useSettings.js` | Genel ayarlar |
-| `useSpeech` | `hooks/useSpeech.js` | TTS |
+| `useProgress` | `hooks/useProgress.js` | İlerleme takibi + `BADGE_DEFS` (10 rozet) |
+| `useSettings` | `hooks/useSettings.js` | `ttsEnabled`, `ttsRate`, `dailyCardGoal` |
+| `useSpeech` | `hooks/useSpeech.js` | TTS (`speak`, `isSpeaking`) + STT (`startListening`, `checkAnswer`, `transcript`) |
 
 ---
 
@@ -75,9 +76,10 @@ Proje aktif geliştirme aşamasında. Temel iskelet, tüm öğrenme akışı ve 
 | `aguilang_active_category` | object | `{id, name, emoji}` |
 | `aguilang_active_categories` | string[] | Ebeveyn kategori izin listesi (null = hepsi açık) |
 | `aguilang_word_stats` | object | `{wordId: {correct, wrong, seen}}` |
-| `aguilang_daily_stats` | object | `{"2026-04-14": {seen, correct, wrong}}` |
+| `aguilang_daily_stats` | object | `{"2026-04-15": {seen, correct, wrong}}` |
 | `aguilang_parent_pin` | string | PIN kodu (default: "1234") |
 | `aguilang_parent_controls` | object | Dil ayarları, oturum limiti vb. |
+| `aguilang_speech_quiz` | boolean | Sesli telaffuz sorusu aktif/pasif (default: true) |
 | `aguilang_last_reset` | string | Son sıfırlama kaydı |
 
 ---
@@ -85,8 +87,8 @@ Proje aktif geliştirme aşamasında. Temel iskelet, tüm öğrenme akışı ve 
 ## Veri Dosyaları
 
 - **20 kelime kategorisi:** `src/data/{cat}-a1.json` (animals, colors, numbers, fruits, vegetables, body, family, school, food, greetings, questions, clothing, home, transport, time, jobs, sports, places, adjectives, verbs)
+- **Gramer notları:** `src/data/categories.js` içinde her kategoride `grammarNote: { sentences[], tip }` — A1 seviyesi
 - **6 diyalog seti:** `src/data/dialogues/{scene}-a1.json` (home, market, park, restaurant, school, travel)
-- Her JSON: `translations.{langId}.words[]` şemasında, çoklu dil desteğiyle
 
 ---
 
@@ -95,34 +97,33 @@ Proje aktif geliştirme aşamasında. Temel iskelet, tüm öğrenme akışı ve 
 | Karar | Gerekçe |
 |---|---|
 | Backend yok, sadece localStorage | Çocuk hedef kitlesi için kurulum kolaylığı, offline kullanım |
-| Modal yerine ayrı sayfalar (`/learned`, `/stats`) | URL paylaşılabilirliği, back button davranışı, Sidebar entegrasyonu |
-| `window` custom event (`wordStatsUpdated`) | Bileşenler arası reaktivite için, context/global state olmadan |
+| Modal yerine ayrı sayfalar (`/learned`, `/stats`, `/profile`) | URL paylaşılabilirliği, back button davranışı |
+| `window` custom event (`wordStatsUpdated`) | Bileşenler arası reaktivite, context/global state olmadan |
 | `useRef` ile veri yükleme kilidi | Strict Mode çift mount'unda çift yüklemeyi önlemek için |
 | Quiz: `startSession` useEffect deps'ten çıkarıldı | `startSession` her render'da yeniden oluşturulduğundan sonsuz döngüyü önler |
-| Çapraz kategori karışımı: rastgele 2 kategori | `wordStats` kategori metadatası içermediğinden, `phase1` için random JSON yükle |
-| ESLint `// eslint-disable-line` | `wordStats` closure bağımlılığı intentionally omitted (deps eklemek sonsuz döngü yapar) |
-| `getLevel` fonksiyonu silindi | Modal kaldırıldıktan sonra Dashboard'da kullanılmaz hale geldi |
+| STT alias: `checkAnswer: sttCheck` in QuizScreen | Local `checkAnswer` fonksiyonuyla isim çakışmasını önlemek için |
+| "Her şeyi sıfırla" sadece 3 anahtarı siler | Profil, dil, PIN, ebeveyn kontrolleri korunmalı — kullanıcı oturumu bozulmasın |
+| `isSpeechQ` computed at render | `speechQuizEnabled && sttSupported && current % 5 === 4 && q?.word != null` |
+| `didSpeakRef` pattern (DialogueScreen) | `isSpeaking` false→true→false geçişini yakalamak için; initial false'tan korunmak |
 
 ---
 
 ## Bekleyen Görevler
 
 ### Yüksek Öncelik
-- [ ] `/play` — Oyun sayfası gerçek içerikle doldurulacak
-- [ ] `/profile` — Profil sayfası (rozet, başarım, ayarlar)
-- [ ] BottomNav'a `/learned` veya `/stats` tab'ı eklenecek mi? (şu an sadece 4 tab)
-- [ ] Zorlanılan kelimeler için "Tekrar Et" butonu doğrudan quiz'e yönlendirilecek (filtreli)
+- [ ] **Bahrom Hoca metodolojisi** — formül kartı güçlendirme (pattern drilling), hata dostu mesajlar (yanlış cevapta "Neredeyse! Doğrusu: X" tarzı geri bildirim)
+- [ ] **Deploy** — Vercel/Netlify yayın + çocuk test kullanıcısıyla canlı test
 
 ### Orta Öncelik
-- [ ] Diyalog verileri (`dialogues/`) henüz hiçbir sayfada kullanılmıyor
-- [ ] `useSpeech` ve `audioManager` entegrasyonu (TTS flash kartlarda çalışıyor mu?)
-- [ ] Profil puanlama / level-up sistemi gerçek mantıkla (şu an statik)
-- [ ] Quiz sonuç ekranı (oturum özeti, doğru/yanlış özeti)
+- [ ] **Oyun sistemi** — 6 oyun + akıllı yönlendirme (araştırma aşamasında); `/play` route'u placeholder
+- [ ] **Quiz sonuç ekranı** — oturum özeti, doğru/yanlış dökümü
+- [ ] **Profil puanlama / level-up** — şu an statik değerler, gerçek mantık bağlanacak
+- [ ] **Streak sıfırlama mantığı** — gerçek tarihe göre otomatik sıfırlama
 
 ### Düşük Öncelik
-- [ ] `useProgress.js` ve `useSettings.js` hook'larının hangi sayfada kullanıldığı netleştirilecek
 - [ ] ParentPanel İstatistik sekmesi verilerinin gerçek `aguilang_word_stats`'a bağlanması
-- [ ] Streak (günlük seri) sayacının gerçek güne göre sıfırlanma mantığı
+- [ ] BottomNav'a `/learned` veya `/stats` tab'ı eklenecek mi? (şu an 4 tab)
+- [ ] Zorlanılan kelimeler için "Tekrar Et" butonu doğrudan quiz'e filtreli yönlendirme
 
 ---
 
@@ -139,4 +140,6 @@ fc29696  Sidebar ve BottomNav aktif rota vurgusu eklendi
 67cac4c  AguiLang v2 - temel sayfalar tamamlandi
 ```
 
-> **Not:** `ea7405d` sonrası yapılan değişiklikler (modal→sayfa, Sıfırla sekmesi, AppRouter güncellemesi, `getLevel` temizliği) henüz commit edilmedi.
+> **Not:** `ea7405d` sonrası tüm değişiklikler henüz commit edilmedi.
+> Commit edilecekler: gramer notu, STT (FlashCards + QuizScreen), DialogueScreen, ProfilePage,
+> ParentPanel (ses quiz + sıfırla sekmesi), CategorySelect (Diyaloglar kartı), AppRouter güncellemesi.

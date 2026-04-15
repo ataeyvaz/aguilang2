@@ -5,7 +5,7 @@ const navItems = [
   { to: '/stats',      label: 'İstatistik',  icon: '📊', match: ['/stats'] },
   { to: '/learned',    label: 'Kelimelerim', icon: '🎯', match: ['/learned'] },
   { to: '/categories', label: 'Öğren',       icon: '📚', match: ['/categories', '/learn', '/quiz', '/dialogue'] },
-  { to: '/play',       label: 'Oyna',        icon: '🎮', match: ['/play'] },
+  { to: '/play',       label: 'Oyna',        icon: '🎮', match: ['/play', '/games'] },
   { to: '/profile',    label: 'Profil',      icon: '👤', match: ['/profile'] },
 ]
 

@@ -12,16 +12,14 @@ import LearnedWords from '../pages/LearnedWords'
 import StatsPage from '../pages/StatsPage'
 import DialogueScreen from '../pages/DialogueScreen'
 import ProfilePage from '../pages/ProfilePage'
-
-const PlayPage = () => (
-  <div style={{ padding: '40px', fontFamily: 'Inter, sans-serif', color: '#0F172A' }}>
-    <h1 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '24px', fontWeight: '800' }}>
-      🎮 Oyunlar
-    </h1>
-    <p style={{ color: '#64748B', marginTop: '8px' }}>Yakında eklenecek...</p>
-  </div>
-)
-
+import PlayPage from '../pages/PlayPage'
+import ListenGame from '../pages/games/ListenGame'
+import MemoryGame from '../pages/games/MemoryGame'
+import TrueFalseGame from '../pages/games/TrueFalseGame'
+import SpeedGame from '../pages/games/SpeedGame'
+import SentenceGame from '../pages/games/SentenceGame'
+import VoiceGame from '../pages/games/VoiceGame'
+import PuzzleGame from '../pages/games/PuzzleGame'
 
 export default function AppRouter() {
   return (
@@ -44,6 +42,14 @@ export default function AppRouter() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/learned" element={<LearnedWords />} />
           <Route path="/stats" element={<StatsPage />} />
+          {/* Oyunlar */}
+          <Route path="/games/listen"    element={<ListenGame />} />
+          <Route path="/games/memory"    element={<MemoryGame />} />
+          <Route path="/games/truefalse" element={<TrueFalseGame />} />
+          <Route path="/games/speed"     element={<SpeedGame />} />
+          <Route path="/games/sentence"  element={<SentenceGame />} />
+          <Route path="/games/voice"     element={<VoiceGame />} />
+          <Route path="/games/puzzle"    element={<PuzzleGame />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

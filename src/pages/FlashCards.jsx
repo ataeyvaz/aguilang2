@@ -12,7 +12,7 @@ export default function FlashCards() {
   const [flipped, setFlipped] = useState(false)
   const [showGrammar, setShowGrammar] = useState(false)
   const [showWordList, setShowWordList] = useState(false)
-  const [toast, setToast] = useState(false)
+  const [toastType, setToastType] = useState(null) // null | 'correct' | 'wrong'
   const sttTimerRef = useRef(null)
 
   const category = JSON.parse(localStorage.getItem('aguilang_active_category') || '{}')
@@ -28,10 +28,13 @@ export default function FlashCards() {
     if (!transcript) return
     clearTimeout(sttTimerRef.current)
     stopListening()
-    if (checkAnswer(current?.[lang.id])) {
-      setToast(true)
-      setTimeout(() => setToast(false), 2000)
+    if (checkAnswer(current?.word ?? '')) {
+      setToastType('correct')
+    } else {
+      setToastType('wrong')
+      speak(current?.id, current?.word, lang.id)
     }
+    setTimeout(() => setToastType(null), 2000)
   }, [transcript]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -133,19 +136,22 @@ export default function FlashCards() {
       fontFamily: 'Inter, sans-serif',
     }}>
       {/* Toast */}
-      {toast && (
+      {toastType && (
         <div style={{
           position: 'fixed', bottom: '100px', left: '50%',
           transform: 'translateX(-50%)',
-          background: '#10B981', color: 'white',
+          background: toastType === 'correct' ? '#10B981' : '#F59E0B',
+          color: 'white',
           borderRadius: '24px', padding: '12px 28px',
           fontFamily: "'Plus Jakarta Sans', sans-serif",
           fontSize: '15px', fontWeight: '700',
-          boxShadow: '0 4px 16px rgba(16,185,129,0.35)',
+          boxShadow: toastType === 'correct'
+            ? '0 4px 16px rgba(16,185,129,0.35)'
+            : '0 4px 16px rgba(245,158,11,0.35)',
           zIndex: 100, whiteSpace: 'nowrap',
           pointerEvents: 'none',
         }}>
-          Harika! 🌟
+          {toastType === 'correct' ? 'Harika! 🌟' : 'Tekrar dene! 🎤'}
         </div>
       )}
       {/* Header */}

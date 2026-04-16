@@ -108,8 +108,11 @@ export function useSpeech(langId) {
    * Küçük harf + trim normalize eder
    */
   const checkAnswer = useCallback((expected) => {
+    if (!expected) return false
     if (!transcript) return false
-    return transcript.toLowerCase().trim() === expected.toLowerCase().trim()
+    const t = transcript.toLowerCase().trim()
+    const e = expected.toLowerCase().trim()
+    return t === e || t.includes(e) || e.includes(t)
   }, [transcript])
 
   return {

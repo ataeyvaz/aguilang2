@@ -15,6 +15,7 @@ import ProfilePage from '../pages/ProfilePage'
 import PlayPage from '../pages/PlayPage'
 import GrammarPage from '../pages/GrammarPage'
 import GrammarLessonPage from '../pages/GrammarLessonPage'
+import LearnHub from '../pages/LearnHub'
 import ListenGame from '../pages/games/ListenGame'
 import MemoryGame from '../pages/games/MemoryGame'
 import TrueFalseGame from '../pages/games/TrueFalseGame'
@@ -40,6 +41,7 @@ export default function AppRouter() {
           <Route path="/quiz" element={<QuizScreen />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/play" element={<PlayPage />} />
+          <Route path="/learn-hub" element={<LearnHub />} />
           <Route path="/grammar" element={<GrammarPage />} />
           <Route path="/grammar/:lessonId" element={<GrammarLessonPage />} />
           <Route path="/dialogue" element={<DialogueScreen />} />

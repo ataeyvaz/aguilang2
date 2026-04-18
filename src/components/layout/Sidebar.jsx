@@ -4,9 +4,11 @@ const navItems = [
   { to: '/dashboard',  label: 'Dashboard',   icon: '🏠', match: ['/dashboard'] },
   { to: '/stats',      label: 'İstatistik',  icon: '📊', match: ['/stats'] },
   { to: '/learned',    label: 'Kelimelerim', icon: '🎯', match: ['/learned'] },
-  { to: '/categories', label: 'Öğren',       icon: '📚', match: ['/categories', '/learn', '/quiz', '/dialogue'] },
+  { to: '/learn-hub',  label: 'Öğren',       icon: '📚', match: ['/learn-hub', '/categories', '/learn', '/quiz', '/dialogue', '/grammar'], sub: [
+    { to: '/categories', label: 'Kelimeler', icon: '🔤' },
+    { to: '/grammar',    label: 'Gramer',    icon: '📐' },
+  ]},
   { to: '/play',       label: 'Oyna',        icon: '🎮', match: ['/play', '/games'] },
-  { to: '/grammar',   label: 'Gramer',      icon: '📐', match: ['/grammar'] },
   { to: '/profile',    label: 'Profil',      icon: '👤', match: ['/profile'] },
 ]
 
@@ -65,25 +67,52 @@ export default function Sidebar() {
 
       {/* Nav links */}
       <nav style={{ display: 'flex', flexDirection: 'column', gap: '2px', padding: '12px', flex: 1 }}>
-        {navItems.map(({ to, label, icon, match }) => {
+        {navItems.map(({ to, label, icon, match, sub }) => {
           const active = isActive(match)
           return (
-            <NavLink
-              key={to}
-              to={to}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '10px',
-                padding: '9px 12px', borderRadius: '10px',
-                fontSize: '14px', fontWeight: active ? '700' : '500',
-                textDecoration: 'none',
-                background: active ? '#EFF8FF' : 'transparent',
-                color: active ? '#0891B2' : '#475569',
-                transition: 'all 0.15s',
-              }}
-            >
-              <span style={{ fontSize: '18px' }}>{icon}</span>
-              <span>{label}</span>
-            </NavLink>
+            <div key={to}>
+              <NavLink
+                to={to}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '10px',
+                  padding: '9px 12px', borderRadius: '10px',
+                  fontSize: '14px', fontWeight: active ? '700' : '500',
+                  textDecoration: 'none',
+                  background: active ? '#EFF8FF' : 'transparent',
+                  color: active ? '#0891B2' : '#475569',
+                  transition: 'all 0.15s',
+                }}
+              >
+                <span style={{ fontSize: '18px' }}>{icon}</span>
+                <span>{label}</span>
+              </NavLink>
+              {/* Sub-links — sadece ana link aktifken göster */}
+              {sub && active && (
+                <div style={{ paddingLeft: '16px', display: 'flex', flexDirection: 'column', gap: '1px', marginTop: '2px' }}>
+                  {sub.map(s => {
+                    const subActive = pathname === s.to || pathname.startsWith(s.to + '/')
+                    return (
+                      <NavLink
+                        key={s.to}
+                        to={s.to}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '8px',
+                          padding: '7px 12px', borderRadius: '8px',
+                          fontSize: '13px', fontWeight: subActive ? '700' : '400',
+                          textDecoration: 'none',
+                          background: subActive ? '#DBEAFE' : 'transparent',
+                          color: subActive ? '#0891B2' : '#64748B',
+                          transition: 'all 0.15s',
+                        }}
+                      >
+                        <span style={{ fontSize: '14px' }}>{s.icon}</span>
+                        <span>{s.label}</span>
+                      </NavLink>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
           )
         })}
       </nav>

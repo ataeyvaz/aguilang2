@@ -9,8 +9,10 @@ export const BADGE_DEFS = [
   { id: 'streak_7',     icon: '⭐', name: '7 Gün Seri',     desc: '7 gün üst üste oynadın',    check: (p) => p.streak >= 7 },
   { id: 'all_games',    icon: '🎮', name: 'Oyun Ustası',    desc: '5 farklı oyun oynadın',     check: (p) => p.gamesPlayed.length >= 5 },
   { id: 'explorer',     icon: '🌍', name: 'Dil Kaşifi',     desc: '3 farklı dil denedin',      check: (p) => p.languagesUsed.length >= 3 },
-  { id: 'points_100',   icon: '💎', name: '100 Puan',       desc: 'Toplam 100 puan kazandın',  check: (p) => p.totalPoints >= 100 },
-  { id: 'points_500',   icon: '👑', name: '500 Puan',       desc: 'Toplam 500 puan kazandın',  check: (p) => p.totalPoints >= 500 },
+  { id: 'points_100',      icon: '💎', name: '100 Puan',         desc: 'Toplam 100 puan kazandın',          check: (p) => p.totalPoints >= 100 },
+  { id: 'points_500',      icon: '👑', name: '500 Puan',         desc: 'Toplam 500 puan kazandın',          check: (p) => p.totalPoints >= 500 },
+  { id: 'grammar_starter', icon: '📐', name: 'Gramer Yolcusu',   desc: 'İlk gramer dersini tamamladın!',    check: (p) => p.grammarCompleted >= 1 },
+  { id: 'grammar_master',  icon: '🏛️', name: 'Gramer Ustası',   desc: 'Tüm 6 gramer dersini tamamladın!',  check: (p) => p.grammarCompleted >= 6 },
 ]
 
 const STORAGE_KEY = 'aguilang_progress_v2'
@@ -27,9 +29,10 @@ const DEFAULT = {
   earnedBadges: [],
   levelUpSeen: false,
   quizHistory: [],   // [{score,correct,total,perfect,date,langId}] max 20
-  hardWords: {},     // {wordId: failCount}
-  todayCards: 0,     // bugün görülen kart (sıfırlanır her gün)
-  todayDate: null,   // today string, günlük sıfırlama için
+  hardWords: {},       // {wordId: failCount}
+  todayCards: 0,       // bugün görülen kart (sıfırlanır her gün)
+  todayDate: null,     // today string, günlük sıfırlama için
+  grammarCompleted: 0, // tamamlanan gramer dersi sayısı
 }
 
 function calcStreak(p) {
@@ -133,6 +136,9 @@ export function useProgress(profileId) {
         ? p.languagesUsed : [...p.languagesUsed, langId],
     })), [mutate])
 
+  const recordGrammar  = useCallback(() =>
+    mutate(p => ({ ...p, grammarCompleted: (p.grammarCompleted || 0) + 1 })), [mutate])
+
   const markLevelUpSeen = useCallback(() =>
     mutate(p => ({ ...p, levelUpSeen: true })), [mutate])
 
@@ -143,7 +149,7 @@ export function useProgress(profileId) {
 
   return {
     progress,
-    recordCards, recordQuiz, recordGame, recordLanguage, markLevelUpSeen,
+    recordCards, recordQuiz, recordGame, recordLanguage, recordGrammar, markLevelUpSeen,
     shouldLevelUp,
     earnedBadges: BADGE_DEFS.filter(b => progress.earnedBadges.includes(b.id)),
     allBadges: BADGE_DEFS,

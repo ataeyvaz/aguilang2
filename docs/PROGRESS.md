@@ -1,12 +1,12 @@
 # AguiLang2 — Proje İlerleme Durumu
 
-_Son güncelleme: 2026-04-15_
+_Son güncelleme: 2026-04-17_
 
 ---
 
 ## Genel Durum
 
-Proje aktif geliştirme aşamasında. Temel iskelet, tüm öğrenme akışı, ebeveyn kontrol sistemi ve sesli özellikler tamamlandı. Build temiz çıkıyor, bilinen hata yok.
+Proje aktif geliştirme aşamasında. Temel iskelet, tüm öğrenme akışı, ebeveyn kontrol sistemi, sesli özellikler, oyun sistemi (6 oyun) ve gramer modülü tamamlandı. Build temiz çıkıyor, bilinen hata yok.
 
 **Stack:** React 19 · Vite 8 · React Router v7 · TailwindCSS 3 · localStorage (backend yok)
 
@@ -27,7 +27,9 @@ Proje aktif geliştirme aşamasında. Temel iskelet, tüm öğrenme akışı, eb
 | Öğrendiklerim | `/learned` | ✅ Tamamlandı | Tüm 20 kategori, seviye grupları, arama |
 | İstatistikler | `/stats` | ✅ Tamamlandı | Bar chart, kategori ilerleme, en uzun seri |
 | Profil | `/profile` | ✅ Tamamlandı | Rozet sistemi, TTS ayarları, sıfırlama (profil korunuyor) |
-| Oyna | `/play` | 🔲 Placeholder | "Yakında eklenecek" |
+| Oyna | `/play` | ✅ Tamamlandı | Mod tespiti (reinforcement/growth), 6 aktif oyun, 1 yakında |
+| Gramer | `/grammar` | ✅ Tamamlandı | 6 ders kartı, tamamlandı/devam rozeti, dil bazlı içerik |
+| Gramer Dersi | `/grammar/:lessonId` | ✅ Tamamlandı | 4 adım: Input → Formül → Output → Diyalog |
 
 ### Ebeveyn Sistemi
 | Sayfa | Route | Durum | Notlar |
@@ -48,7 +50,43 @@ Proje aktif geliştirme aşamasında. Temel iskelet, tüm öğrenme akışı, eb
 | AppLayout | ✅ Tamamlandı | Sidebar (web) + BottomNav (mobil) |
 | Sidebar | ✅ Tamamlandı | 6 nav linki, aktif vurgu `/dialogue` dahil |
 | BottomNav | ✅ Tamamlandı | 4 tab, aktif vurgu `/dialogue` dahil |
-| AppRouter | ✅ Tamamlandı | Standalone + AppLayout rotaları, `/dialogue` + `/profile` |
+| AppRouter | ✅ Tamamlandı | Standalone + AppLayout rotaları, `/dialogue` + `/profile` + 7 oyun + `/grammar` + `/grammar/:lessonId` |
+
+---
+
+## Gramer Modülü
+
+### Veri Dosyaları
+18 JSON dosyası: `src/data/grammar/{lang}/lesson-{1-6}.json`
+
+| Ders | EN | DE | ES |
+|---|---|---|---|
+| 1 | Simple Present | Präsens | Presente |
+| 2 | am/is/are | sein | ser/estar |
+| 3 | Do/Does soru | W-Fragen | Preguntas |
+| 4 | Don't/Doesn't | Negation (nicht/kein) | No+fiil |
+| 5 | Where/When | Wo/Wann | Dónde/Cuándo |
+| 6 | Did/Was/Were | Perfekt | Pretérito Indefinido |
+
+Her ders: `formulaVisual`, `inputSentences` (5), `outputExercises` (4: fill+build karışık), `contextDialogue` (4 satır)
+
+### Sayfa Akışı
+```
+GrammarPage /grammar        → 6 ders kartı, tamamlandı/devam/başla butonları
+GrammarLessonPage /grammar/:lessonId → 4 adım:
+  Adım 0 (Input)    — 5 örnek cümle, TTS, Türkçe toggle
+  Adım 1 (Formül)   — Büyük formül kutusu, correct/wrong örnekler, TTS
+  Adım 2 (Output)   — fill + build egzersizler, shake animasyonu, ipucu
+  Adım 3 (Diyalog)  — contextDialogue, TTS, Türkçe hint, Dersi Tamamla
+```
+
+### localStorage
+`aguilang_grammar_progress`: `{ "en-lesson-1": { completed, currentStep, completedAt } }`
+Yarıda çıkılınca kaldığı adımdan devam eder.
+
+### Rozetler (useProgress.js)
+- `grammar_starter` 📐 — İlk gramer dersi tamamlandı (`grammarCompleted >= 1`)
+- `grammar_master` 🏛️ — 6 ders tamamlandı (`grammarCompleted >= 6`)
 
 ---
 
@@ -63,7 +101,8 @@ Proje aktif geliştirme aşamasında. Temel iskelet, tüm öğrenme akışı, eb
 | `useProfile` | `hooks/useProfile.js` | Profil yönetimi |
 | `useProgress` | `hooks/useProgress.js` | İlerleme takibi + `BADGE_DEFS` (10 rozet) |
 | `useSettings` | `hooks/useSettings.js` | `ttsEnabled`, `ttsRate`, `dailyCardGoal` |
-| `useSpeech` | `hooks/useSpeech.js` | TTS (`speak`, `isSpeaking`) + STT (`startListening`, `checkAnswer`, `transcript`) |
+| `useSpeech` | `hooks/useSpeech.js` | TTS (`speak`, `isSpeaking`) + STT (`startListening`, `checkAnswer`, `transcript`); gevşek eşleşme: `t===e \|\| t.includes(e) \|\| e.includes(t)` |
+| `useGrammar` | `hooks/useGrammar.js` | `loadLesson(lang, n)`, `saveProgress(lessonId, step, completed)`, `getProgress(lessonId)`, `getAllProgress(lang)` |
 
 ---
 
@@ -105,17 +144,37 @@ Proje aktif geliştirme aşamasında. Temel iskelet, tüm öğrenme akışı, eb
 | "Her şeyi sıfırla" sadece 3 anahtarı siler | Profil, dil, PIN, ebeveyn kontrolleri korunmalı — kullanıcı oturumu bozulmasın |
 | `isSpeechQ` computed at render | `speechQuizEnabled && sttSupported && current % 5 === 4 && q?.word != null` |
 | `didSpeakRef` pattern (DialogueScreen) | `isSpeaking` false→true→false geçişini yakalamak için; initial false'tan korunmak |
+| STT `checkAnswer` → `current.word` | JSON yapısı `{ word: "cat", tr: "kedi" }` — `lang.id` ile eşleşen alan yok; `current.word` kullanılmalı |
+| Oyun havuzu: tüm 20 kategori | Tek kategori havuzu çok küçük (10–65 kelime); tüm kategoriler `Promise.allSettled` ile paralel yüklenir, `seen>=1` filtresi |
+| SpeedGame: bir tur → oyun biter | `genQuestions` pool.length kadar soru üretir; `qIndex >= questions.length` → `allDone=true` özel ekran |
+| STT toast: correct/wrong ayrımı | Doğruysa yeşil "Harika! 🌟", yanlışsa amber "Tekrar dene! 🎤" + TTS doğru kelimeyi seslendirir |
+
+---
+
+## Tamamlanan Oyunlar
+
+| Oyun | Dosya | Mod | Durum | Notlar |
+|---|---|---|---|---|
+| Dinle & Seç | `games/ListenGame.jsx` | reinforcement | ✅ | TTS autoplay, 10 soru, tüm kategoriler |
+| Hafıza Eşleştir | `games/MemoryGame.jsx` | reinforcement | ✅ | 4 kelime × 2 kart, timer + hamle sayacı, tüm kategoriler |
+| Doğru / Yanlış | `games/TrueFalseGame.jsx` | reinforcement | ✅ | Emoji eşleşme, distractor mantığı, tüm kategoriler |
+| Hız Turu | `games/SpeedGame.jsx` | growth | ✅ | 60s sayaç, +3s bonus, bir tur = tüm kelimeler, allDone ekranı |
+| Cümle Kur | `games/SentenceGame.jsx` | growth | ✅ | Token sürükle, shake animasyonu, TTS doğruda |
+| Hazineyi Aç | `games/VoiceGame.jsx` | growth | 🔲 | STT iskelet var, tam implementasyon bekliyor |
+| Senaryo Puzzle | `games/PuzzleGame.jsx` | growth | 🔲 | Placeholder |
 
 ---
 
 ## Bekleyen Görevler
 
 ### Yüksek Öncelik
-- [ ] **Bahrom Hoca metodolojisi** — formül kartı güçlendirme (pattern drilling), hata dostu mesajlar (yanlış cevapta "Neredeyse! Doğrusu: X" tarzı geri bildirim)
+- [ ] **VoiceGame tam implementasyon** — STT ile kelime/cümle telaffuz oyunu
+- [ ] **Senaryo Puzzle (PuzzleGame)** — diyalog boşluk doldurma oyunu
 - [ ] **Deploy** — Vercel/Netlify yayın + çocuk test kullanıcısıyla canlı test
+- [ ] **Gramer → Oyna bağlantısı** — Gramer dersini tamamlayan kullanıcı ilgili oyunlara yönlendirilsin
 
 ### Orta Öncelik
-- [ ] **Oyun sistemi** — 6 oyun + akıllı yönlendirme (araştırma aşamasında); `/play` route'u placeholder
+- [ ] **Bahrom Hoca metodolojisi** — formül kartı güçlendirme (pattern drilling), hata dostu mesajlar
 - [ ] **Quiz sonuç ekranı** — oturum özeti, doğru/yanlış dökümü
 - [ ] **Profil puanlama / level-up** — şu an statik değerler, gerçek mantık bağlanacak
 - [ ] **Streak sıfırlama mantığı** — gerçek tarihe göre otomatik sıfırlama
@@ -142,4 +201,6 @@ fc29696  Sidebar ve BottomNav aktif rota vurgusu eklendi
 
 > **Not:** `ea7405d` sonrası tüm değişiklikler henüz commit edilmedi.
 > Commit edilecekler: gramer notu, STT (FlashCards + QuizScreen), DialogueScreen, ProfilePage,
-> ParentPanel (ses quiz + sıfırla sekmesi), CategorySelect (Diyaloglar kartı), AppRouter güncellemesi.
+> ParentPanel (ses quiz + sıfırla sekmesi), CategorySelect (Diyaloglar kartı), AppRouter güncellemesi,
+> PlayPage + 6 oyun (ListenGame, MemoryGame, TrueFalseGame, SpeedGame, SentenceGame, VoiceGame),
+> STT bug fix (checkAnswer → current.word, gevşek eşleşme, correct/wrong toast).

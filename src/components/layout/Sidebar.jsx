@@ -6,6 +6,7 @@ const navItems = [
   { to: '/learned',    label: 'Kelimelerim', icon: '🎯', match: ['/learned'] },
   { to: '/categories', label: 'Öğren',       icon: '📚', match: ['/categories', '/learn', '/quiz', '/dialogue'] },
   { to: '/play',       label: 'Oyna',        icon: '🎮', match: ['/play', '/games'] },
+  { to: '/grammar',   label: 'Gramer',      icon: '📐', match: ['/grammar'] },
   { to: '/profile',    label: 'Profil',      icon: '👤', match: ['/profile'] },
 ]
 

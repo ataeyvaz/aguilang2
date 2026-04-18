@@ -13,6 +13,8 @@ import StatsPage from '../pages/StatsPage'
 import DialogueScreen from '../pages/DialogueScreen'
 import ProfilePage from '../pages/ProfilePage'
 import PlayPage from '../pages/PlayPage'
+import GrammarPage from '../pages/GrammarPage'
+import GrammarLessonPage from '../pages/GrammarLessonPage'
 import ListenGame from '../pages/games/ListenGame'
 import MemoryGame from '../pages/games/MemoryGame'
 import TrueFalseGame from '../pages/games/TrueFalseGame'
@@ -38,6 +40,8 @@ export default function AppRouter() {
           <Route path="/quiz" element={<QuizScreen />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/play" element={<PlayPage />} />
+          <Route path="/grammar" element={<GrammarPage />} />
+          <Route path="/grammar/:lessonId" element={<GrammarLessonPage />} />
           <Route path="/dialogue" element={<DialogueScreen />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/learned" element={<LearnedWords />} />

@@ -9,6 +9,8 @@ const navItems = [
     { to: '/grammar',    label: 'Gramer',    icon: '📐' },
   ]},
   { to: '/play',       label: 'Oyna',        icon: '🎮', match: ['/play', '/games'] },
+  { to: '/dictionary', label: 'Sözlük',      icon: '📖', match: ['/dictionary'] },
+  { to: '/levels',     label: 'Seviyeler',   icon: '🏆', match: ['/levels'] },
   { to: '/profile',    label: 'Profil',      icon: '👤', match: ['/profile'] },
 ]
 

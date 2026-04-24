@@ -4,6 +4,8 @@ const tabs = [
   { to: '/dashboard',  label: 'Anasayfa', icon: '🏠', match: ['/dashboard'] },
   { to: '/learn-hub',  label: 'Öğren',    icon: '📚', match: ['/learn-hub', '/categories', '/learn', '/quiz', '/dialogue', '/grammar'] },
   { to: '/play',       label: 'Oyna',     icon: '🎮', match: ['/play', '/games'] },
+  { to: '/dictionary', label: 'Sözlük',   icon: '📖', match: ['/dictionary'] },
+  { to: '/levels',     label: 'Seviyeler',icon: '🏆', match: ['/levels'] },
   { to: '/profile',    label: 'Profil',   icon: '👤', match: ['/profile'] },
 ]
 

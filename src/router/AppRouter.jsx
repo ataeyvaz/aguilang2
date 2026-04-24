@@ -23,6 +23,9 @@ import SpeedGame from '../pages/games/SpeedGame'
 import SentenceGame from '../pages/games/SentenceGame'
 import VoiceGame from '../pages/games/VoiceGame'
 import PuzzleGame from '../pages/games/PuzzleGame'
+import FarManGame from '../pages/games/FarManGame'
+import DictionaryPage from '../pages/DictionaryPage'
+import LevelsPage from '../pages/LevelsPage'
 
 export default function AppRouter() {
   return (
@@ -48,6 +51,8 @@ export default function AppRouter() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/learned" element={<LearnedWords />} />
           <Route path="/stats" element={<StatsPage />} />
+          <Route path="/dictionary" element={<DictionaryPage />} />
+          <Route path="/levels" element={<LevelsPage />} />
           {/* Oyunlar */}
           <Route path="/games/listen"    element={<ListenGame />} />
           <Route path="/games/memory"    element={<MemoryGame />} />
@@ -56,6 +61,7 @@ export default function AppRouter() {
           <Route path="/games/sentence"  element={<SentenceGame />} />
           <Route path="/games/voice"     element={<VoiceGame />} />
           <Route path="/games/puzzle"    element={<PuzzleGame />} />
+          <Route path="/games/farman"   element={<FarManGame />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

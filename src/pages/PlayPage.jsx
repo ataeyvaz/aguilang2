@@ -9,6 +9,7 @@ const GAMES = [
   { id: 'sentence',  emoji: '📝', name: 'Cümle Kur',       desc: 'Kelimeleri doğru sıraya diz',      route: '/games/sentence',  mode: 'growth',        ready: true  },
   { id: 'voice',     emoji: '🎤', name: 'Hazineyi Aç',     desc: 'Söyle, hazineyi kazan',            route: '/games/voice',     mode: 'growth',        ready: true  },
   { id: 'puzzle',    emoji: '🧩', name: 'Senaryo Puzzle',  desc: 'Diyalog boşluklarını doldur',      route: '/games/puzzle',    mode: 'growth',        ready: false },
+  { id: 'farman',   emoji: '🌾', name: 'FarMan',          desc: 'Tarlanı hasat et, hayaletlerden kaç!', route: '/games/farman', mode: 'growth',        ready: true  },
 ]
 
 export default function PlayPage() {
